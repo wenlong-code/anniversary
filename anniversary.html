@@ -161,7 +161,10 @@
 <div class="music-toggle" id="musicToggle" onclick="toggleMusic()">
   <span class="music-icon" id="musicIcon">🔊</span>
 </div>
-<script src="music.js"></script>
+<script>
+function loadMusic(){var s=document.createElement('script');s.src='music.js';s.async=true;document.head.appendChild(s)}
+if(document.readyState==='complete')loadMusic();else window.addEventListener('load',loadMusic);
+</script>
 <script>
 (function(){
 'use strict';
@@ -388,7 +391,7 @@ loop();
 
 var audioCtx=null,analyser=null,musicStarted=false,musicMuted=false,masterGain=null,bgAudio=null;
 var audioData=new Uint8Array(64);
-function initMusic(){if(musicStarted)return;musicStarted=true;try{
+function initMusic(){if(musicStarted||typeof MUSIC_B64==='undefined')return;musicStarted=true;try{
 audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 masterGain=audioCtx.createGain();
 masterGain.gain.value=0.6;
@@ -408,9 +411,9 @@ bgAudio.play().catch(function(){});
 }catch(e){}}
 function toggleMusic(){if(!audioCtx)return;musicMuted=!musicMuted;masterGain.gain.setValueAtTime(musicMuted?0:0.6,audioCtx.currentTime);document.getElementById('musicIcon').textContent=musicMuted?'🔇':'🔊'}
 window.toggleMusic=toggleMusic;
-function tryStartMusic(){if(!musicStarted&&started)initMusic();document.removeEventListener('touchstart',tryStartMusic);document.removeEventListener('click',tryStartMusic)}
+function tryStartMusic(){if(!musicStarted&&started&&typeof MUSIC_B64!=='undefined')initMusic();if(!musicStarted)return;document.removeEventListener('touchstart',tryStartMusic);document.removeEventListener('click',tryStartMusic)}
 document.addEventListener('touchstart',tryStartMusic);document.addEventListener('click',tryStartMusic);
-setTimeout(function(){if(started)initMusic()},3000);
+var musicPoll=setInterval(function(){if(started&&typeof MUSIC_B64!=='undefined'){initMusic();clearInterval(musicPoll)}},500);
 })();
 </script>
 </div>
